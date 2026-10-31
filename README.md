@@ -10,7 +10,7 @@ Requiere Docker Engine + Docker Compose v2
 
 ```bash
 docker compose build
-docker compose up -d kafka init-kafka jobmanager taskmanager lake-writer spark
+docker compose up -d kafka kafka-ui init-kafka jobmanager taskmanager lake-writer spark spark-history
 docker compose ps
 # Consulta la estructura del topic nyc.taxi.trips en Kafka. Unico broker con 3 particiones
 docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --describe --topic nyc.taxi.trips
@@ -35,6 +35,9 @@ Ejecutar Spark después de tener eventos persistidos:
 docker compose exec spark python spark/historical_analysis.py
 docker compose exec spark python spark/stream_comparison.py
 ```
+
+## Consola visual de Flink
+
 Flink UI: http://localhost:8081. Resultados: `results/batch/` y `results/comparison/`.
 
 ## Consola visual de Kafka
