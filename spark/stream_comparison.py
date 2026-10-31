@@ -1,5 +1,7 @@
 import glob,json
+from pathlib import Path
 from pyspark.sql import SparkSession,functions as F,Window
+Path('/app/results/spark-events').mkdir(parents=True, exist_ok=True)
 spark=SparkSession.builder.appName('NYC Taxi Replay Comparison').master('local[*]').getOrCreate()
 files=glob.glob('/app/results/lake/ingest_date=*/*.parquet')
 if not files:raise SystemExit('No hay eventos persistidos; ejecute lake-writer y producer primero')

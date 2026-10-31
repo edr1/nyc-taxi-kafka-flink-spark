@@ -1,5 +1,7 @@
 import glob
+from pathlib import Path
 from pyspark.sql import SparkSession,functions as F,Window
+Path('/app/results/spark-events').mkdir(parents=True, exist_ok=True)
 spark=SparkSession.builder.appName('NYC Taxi Historical Batch').master('local[*]').config('spark.sql.session.timeZone','America/New_York').getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 files=sorted(glob.glob('/app/data/historical/*.parquet'))

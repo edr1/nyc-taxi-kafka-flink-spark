@@ -20,6 +20,14 @@ services:
       test: ["CMD-SHELL", "./opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --list >/dev/null 2>&1"]
       interval: 10s
       retries: 18
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    ports: ["8080:8080"]
+    environment:
+      KAFKA_CLUSTERS_0_NAME: nyc-taxi
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_READONLY: 'true'
+    depends_on: {kafka: {condition: service_healthy}}
   init-kafka:
     image: apache/kafka:3.9.1
     depends_on: {kafka: {condition: service_healthy}}
@@ -56,5 +64,12 @@ services:
   spark:
     build: {context: ., dockerfile: python.Dockerfile}
     command: ["sleep", "infinity"]
+    environment: {SPARK_CONF_DIR: /app/spark/conf}
     volumes: ["./data:/app/data:ro", "./results:/app/results"]
-    ports: ["4040:4040"]
+    ports: ["4040:4040", "4041:4041"]
+  spark-history:
+    build: {context: ., dockerfile: python.Dockerfile}
+    command: ["python", "spark/history_server.py"]
+    environment: {SPARK_CONF_DIR: /app/spark/conf}
+    volumes: ["./results:/app/results"]
+    ports: ["18080:18080"]

@@ -37,7 +37,9 @@ BEGIN
  INSERT INTO hourly_patterns
  SELECT HOUR(pickup_ts), DAYOFWEEK(pickup_ts), COUNT(*)
  FROM (
-  SELECT CAST(tpep_pickup_datetime AS TIMESTAMP(3)) AS pickup_ts
+  -- Python isoformat() uses 'T'; SQL timestamp casts expect a space.
+  -- Invalid dates become NULL and are excluded by the outer filter.
+  SELECT TRY_CAST(REPLACE(tpep_pickup_datetime, 'T', ' ') AS TIMESTAMP(3)) AS pickup_ts
   FROM taxi_events
   WHERE PULocationID BETWEEN 1 AND 263 AND total_amount >= 0
    AND tpep_pickup_datetime IS NOT NULL

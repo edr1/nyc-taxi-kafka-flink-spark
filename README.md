@@ -16,11 +16,11 @@ docker compose ps
 docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --describe --topic nyc.taxi.trips
 ```
 
-Terminal A: ejecutar Flink SQL (job de larga duración):
+Terminal A: Ejecutar Flink SQL (job de larga duración):
 ```bash
 docker compose exec jobmanager ./bin/sql-client.sh -f /opt/flink/usrlib/streaming.sql
 ```
-Terminal B: reproducir 5000 viajes a 20 eventos/s (cambiar MAX_EVENTS y EVENTS_PER_SECOND en .env o shell):
+Terminal B: Ejecutar el Productor para reproducir 5000 viajes (MAX_EVENTS) a 20 eventos/s (EVENTS_PER_SECOND) y publicarlos en Kafka
 ```bash
 docker compose --profile ingest run --rm producer
 ```
@@ -36,6 +36,49 @@ docker compose exec spark python spark/historical_analysis.py
 docker compose exec spark python spark/stream_comparison.py
 ```
 Flink UI: http://localhost:8081. Resultados: `results/batch/` y `results/comparison/`.
+
+## Consola visual de Kafka
+
+Kafka usa su propio protocolo en el puerto 9092; ese puerto no sirve una página web.
+El servicio `kafka-ui` proporciona Kafbat UI en modo de solo lectura:
+
+```bash
+docker compose up -d kafka-ui
+docker compose logs --tail=100 kafka-ui
+```
+
+Abrir http://localhost:8080 si Docker corre en la misma máquina, o
+http://10.8.0.30:8080 para el servidor del laboratorio. Seleccionar el clúster
+`nyc-taxi`, entrar en **Topics**, abrir `nyc.taxi.trips` y seleccionar **Messages**.
+Para ver eventos existentes, elegir lectura desde el principio (earliest) y ejecutar
+la búsqueda. Cada evento muestra la clave, el JSON, la partición y el offset.
+La consola se conecta internamente a `kafka:29092`; el navegador solo necesita el
+puerto HTTP 8080. Esta configuración no incluye autenticación; usar en la red de
+confianza del laboratorio.
+
+## Consolas visuales de Spark
+
+```bash
+docker compose build spark spark-history
+docker compose up -d --no-deps spark spark-history
+```
+
+La recreación de `spark` interrumpe análisis activos; ejecutar estos comandos cuando
+no haya análisis en curso. Ejecutar después los scripts Spark como se indica arriba.
+
+- Aplicación activa: http://10.8.0.30:4040 (o http://localhost:4040).
+- Segunda aplicación simultánea: http://10.8.0.30:4041.
+- Historial: http://10.8.0.30:18080 (o http://localhost:18080).
+
+La UI activa existe solamente mientras vive el SparkContext: `sleep infinity` no la
+inicia y `spark.stop()` la cierra. En las pestañas Jobs, Stages, SQL y Executors se
+pueden inspeccionar tareas, consultas y recursos. Los scripts usan `local[*]` dentro
+del contenedor, sin un clúster Spark standalone separado.
+
+El History Server lee los event logs persistidos en `results/spark-events/`.
+Solo se podrán consultar ejecuciones que hayan generado estos logs después de
+habilitar la configuración; no recupera ejecuciones antiguas sin event logs.
+Para diagnosticar: `docker compose logs --tail=100 spark-history`.
 
 ## Preguntas
 - P2 Flink: demanda por ventanas de un minuto de tiempo de procesamiento y agregación incremental por hora/día **históricos** del timestamp de pickup. Esta última es acumulativa y no es una ventana temporal de eventos.
