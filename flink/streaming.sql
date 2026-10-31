@@ -44,9 +44,11 @@ BEGIN
  ) WHERE pickup_ts IS NOT NULL
  GROUP BY HOUR(pickup_ts), DAYOFWEEK(pickup_ts);
  INSERT INTO live_top3
+ -- String partition keys force regular Top-N instead of unsupported proctime Window Top-N.
+ -- Regular Top-N emits changelog updates and retains state for past windows (no TTL).
  SELECT window_start,window_end,PULocationID,trips,zone_rank FROM (
    SELECT window_start,window_end,PULocationID,trips,
-   ROW_NUMBER() OVER (PARTITION BY window_start,window_end
+   ROW_NUMBER() OVER (PARTITION BY CAST(window_start AS STRING),CAST(window_end AS STRING)
                       ORDER BY trips DESC, PULocationID ASC) AS zone_rank
    FROM (
     SELECT window_start,window_end,PULocationID,COUNT(*) AS trips
