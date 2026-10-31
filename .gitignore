@@ -6,3 +6,4 @@ results/*
 !data/reference/.gitkeep
 !data/weather/.gitkeep
 !results/.gitkeep
+data.zip

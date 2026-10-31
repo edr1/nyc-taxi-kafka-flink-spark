@@ -24,7 +24,7 @@ CREATE TABLE live_metrics (
  pickup_zone INT, trips BIGINT, revenue DOUBLE
 ) WITH ('connector'='print', 'print-identifier'='FLINK_P2_WINDOW');
 CREATE TABLE hourly_patterns (
- pickup_hour INT, weekday_num INT, trips BIGINT
+ pickup_hour BIGINT, weekday_num BIGINT, trips BIGINT
 ) WITH ('connector'='print', 'print-identifier'='FLINK_P2_HOUR_WEEKDAY');
 CREATE TABLE live_top3 (
  window_start TIMESTAMP(3), window_end TIMESTAMP(3),

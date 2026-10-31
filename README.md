@@ -6,12 +6,13 @@
 - `data/weather/open-meteo-40.74N74.04W32m.csv`: exportación Open-Meteo con 4 líneas previas a los datos (metadatos, blanco, encabezado); columnas `time,temperature_2m (°C),precipitation (mm),rain (mm),snowfall (cm),wind_speed_10m (km/h)`.
 
 ## Inicio
-Requiere Docker Engine + Docker Compose v2, acceso a Internet para descargar imágenes y JAR, >= 8 GB RAM libres.
+Requiere Docker Engine + Docker Compose v2
 
 ```bash
 docker compose build
 docker compose up -d kafka init-kafka jobmanager taskmanager lake-writer spark
 docker compose ps
+# Consulta la estructura del topic nyc.taxi.trips en Kafka. Unico broker con 3 particiones
 docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --describe --topic nyc.taxi.trips
 ```
 
